@@ -1,9 +1,13 @@
 package login
 
 import (
+	"encoding/json"
+	"errors"
 	"flag"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 )
 
 func Exec(args []string) {
@@ -11,11 +15,15 @@ func Exec(args []string) {
 	authInfo := NewAuthInfo("https://t1.authority.dev.aruba-simpl.cloud/auth")
 	flags.Parse(args)
 	userTokenC := StartLoginWebServer(authInfo)
-	token, ok := <-userTokenC
+	userToken, ok := <-userTokenC
 	if !ok {
 		log.Fatal("Unable to read from token. Channel is closed.")
 	}
-	log.Printf("Token: %s", token)
+	token, err := Tokenize(userToken)
+	if err != nil {
+		log.Fatalf("Unable to tokenize. %s", err.Error())
+	}
+	log.Printf("Token: %+v", token)
 }
 
 func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
@@ -48,3 +56,30 @@ func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
 	return userTokenC
 }
 
+func Tokenize(userToken UserToken) (tokenInfo TokenInfo, err error) {
+	values := url.Values{}
+	values.Add("code", userToken.Code)
+	values.Add("grant_type", "authorization_code")
+	values.Add("client_id", "frontend-cli")
+	values.Add("redirect_uri", "http://localhost:8080/auth")
+	values.Add("code_verifier", "gd8PkFgqwnYZOJJrxuMDk0Rjk2q3hx6VYYpIas4KvsECpPBpMXttrxc8bsT9kPtM8w41IdkvvBJOfX4RqwJLSM1hgrgBv5t6")
+	log.Println("Tokenize...")
+	r, err := http.PostForm("https://t1.authority.dev.aruba-simpl.cloud/auth/realms/authority/protocol/openid-connect/token", values)
+	if err != nil {
+		return
+	}
+	defer r.Body.Close()
+	log.Println("Tokenize status: ", r.Status)
+	log.Println("Tokenize size: ", r.Header.Get("content-length"))
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			return tokenInfo, err
+		}
+	if r.StatusCode >=200 && r.StatusCode < 300 {
+		err = json.Unmarshal(body, &tokenInfo)
+	} else {
+		log.Printf("Body: %s", body)
+		err = errors.New("Bad tokenization. " + r.Status)
+	}
+	return
+}
