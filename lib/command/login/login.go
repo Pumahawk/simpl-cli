@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 func Exec(args []string) {
@@ -23,7 +24,10 @@ func Exec(args []string) {
 	if err != nil {
 		log.Fatalf("Unable to tokenize. %s", err.Error())
 	}
-	log.Printf("Token: %+v", token)
+	err = json.NewEncoder(os.Stdout).Encode(token)
+	if err != nil {
+		log.Fatalf("Unable to encode token to stdout. %s", err)
+	}
 }
 
 func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
