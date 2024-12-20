@@ -28,9 +28,14 @@ func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
 			w.Write(AUTH_PAGE_HTML)
 		})
 		http.HandleFunc("GET /code", func(w http.ResponseWriter, r *http.Request) {
-			code := r.URL.Query().Get("code")
-			log.Printf("Code: %s", code)
-			userTokenC <- UserToken{Code: code}
+			w.WriteHeader(200)
+			w.Write(CODE_PAGE_HTML)
+			userTokenC <- UserToken{
+				Code: r.URL.Query().Get("code"),
+				Iss: r.URL.Query().Get("iss"),
+				SessionState: r.URL.Query().Get("session_state"),
+				State: r.URL.Query().Get("state"),
+			}
 		})
 		http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 			log.Println("Login request.")

@@ -2,6 +2,9 @@ package login
 
 type UserToken struct {
 	Code string
+	Iss string
+	SessionState string
+	State string
 }
 
 type AuthInfo struct {
