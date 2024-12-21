@@ -12,15 +12,15 @@ import (
 )
 
 func Exec(args []string) {
-	flags := flag.NewFlagSet("login", flag.ExitOnError)
-	authInfo := NewAuthInfo("https://t1.authority.dev.aruba-simpl.cloud/auth")
-	flags.Parse(args)
-	userTokenC := StartLoginWebServer(authInfo)
+	config := ReadConfigFlag(args)
+	// "https://t1.authority.dev.aruba-simpl.cloud/auth"
+	authInfo := NewAuthInfo(config.AuthServer.Host)
+	userTokenC := StartLoginWebServer(config.AuthServer, config.Server, authInfo)
 	userToken, ok := <-userTokenC
 	if !ok {
 		log.Fatal("Unable to read from token. Channel is closed.")
 	}
-	token, err := Tokenize(userToken)
+	token, err := Tokenize(config.AuthServer, config.Server, userToken)
 	if err != nil {
 		log.Fatalf("Unable to tokenize. %s", err.Error())
 	}
@@ -30,11 +30,25 @@ func Exec(args []string) {
 	}
 }
 
-func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
+func ReadConfigFlag(args []string) (config ConfigFlags) {
+	flags := flag.NewFlagSet("login", flag.ExitOnError)
+	flags.StringVar(&config.Server.Port, "port", "8080", "Server port")
+	flags.StringVar(&config.AuthServer.Host, "auth-host", "", "Authentication server host")
+	flags.StringVar(&config.AuthServer.ClientId, "auth-client-id", "frontend-cli", "Client Id")
+	flags.StringVar(&config.AuthServer.Realm, "realm", "authority", "Keycloak realm")
+	flags.Parse(args)
+
+	if config.AuthServer.Host == "" {
+		log.Fatalln("Mandatory auth-host flag missing")
+	}
+	return
+}
+
+func StartLoginWebServer(authServer AuthServer, localServer LocalServer, authInfo AuthInfo) chan UserToken {
 	userTokenC := make(chan UserToken)
 	go func() {
 		log.Println("Start login server")
-		log.Println("Server: localhost:8080")
+		log.Println("Server: localhost:" + localServer.Port)
 		http.HandleFunc("GET /auth", func(w http.ResponseWriter, r *http.Request) {
 			log.Println("Authentication...")
 			w.WriteHeader(200)
@@ -52,20 +66,20 @@ func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
 		})
 		http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 			log.Println("Login request.")
-			http.Redirect(w, r, authInfo.ToURI(), 301)
+			http.Redirect(w, r, authInfo.ToURI(authServer, localServer), 301)
 		})
-		error := http.ListenAndServe("localhost:8080", nil)
+		error := http.ListenAndServe("localhost:"+localServer.Port, nil)
 		log.Printf("Unable to start login server. %s", error.Error())
 		close(userTokenC)
 	}()
 	return userTokenC
 }
 
-func Tokenize(token UserToken) (tokenInfo TokenInfo, err error) {
+func Tokenize(authServer AuthServer, localServer LocalServer, token UserToken) (tokenInfo TokenInfo, err error) {
 	values := url.Values{}
-	NewTokenizeInfo(token.Code).ToUrlValues(&values)
+	NewTokenizeInfo(token.Code, localServer).ToUrlValues(&values, localServer)
 	log.Println("Tokenize...")
-	r, err := http.PostForm("https://t1.authority.dev.aruba-simpl.cloud/auth/realms/authority/protocol/openid-connect/token", values)
+	r, err := http.PostForm(authServer.Host+"/realms/"+authServer.Realm+"/protocol/openid-connect/token", values)
 	if err != nil {
 		return
 	}

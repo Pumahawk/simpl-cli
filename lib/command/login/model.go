@@ -2,6 +2,21 @@ package login
 
 import "net/url"
 
+type ConfigFlags struct {
+	Server     LocalServer
+	AuthServer AuthServer
+}
+
+type AuthServer struct {
+	Host     string
+	ClientId string
+	Realm    string
+}
+
+type LocalServer struct {
+	Port string
+}
+
 type UserToken struct {
 	Code         string
 	Iss          string
@@ -30,10 +45,7 @@ type TokenizeInfo struct {
 }
 
 type AuthInfo struct {
-	Host                string
 	Path                string
-	ClientId            string
-	RedirectUri         string
 	State               string
 	ResponseMode        string
 	ResponseType        string
@@ -45,10 +57,7 @@ type AuthInfo struct {
 
 func NewAuthInfo(host string) AuthInfo {
 	return AuthInfo{
-		Host:                host,
 		Path:                "/realms/authority/protocol/openid-connect/auth",
-		ClientId:            "frontend-cli",
-		RedirectUri:         "http%3A%2F%2Flocalhost%3A8080%2Fauth",
 		State:               "29f2c56a-d4df-49cf-87dc-a870669a61ab",
 		ResponseMode:        "fragment",
 		ResponseType:        "code",
@@ -59,11 +68,11 @@ func NewAuthInfo(host string) AuthInfo {
 	}
 }
 
-func (info *AuthInfo) ToURI() string {
-	return info.Host +
+func (info *AuthInfo) ToURI(authServer AuthServer, localServer LocalServer) string {
+	return authServer.Host +
 		info.Path +
-		"?client_id=" + info.ClientId +
-		"&redirect_uri=" + info.RedirectUri +
+		"?client_id=" + authServer.ClientId +
+		"&redirect_uri=http%3A%2F%2Flocalhost%3A" + string(localServer.Port) + "%2Fauth" +
 		"&state=" + info.State +
 		"&response_mode=" + info.ResponseMode +
 		"&response_type=" + info.ResponseType +
@@ -73,21 +82,21 @@ func (info *AuthInfo) ToURI() string {
 		"&code_challenge_method=" + info.CodeChallengeMethod
 }
 
-func NewTokenizeInfo(code string) TokenizeInfo {
+func NewTokenizeInfo(code string, localServer LocalServer) TokenizeInfo {
 	return TokenizeInfo{
 		Code:         code,
 		GrantType:    "authorization_code",
 		ClientId:     "frontend-cli",
-		RedirectUri:  "http://localhost:8080/auth",
+		RedirectUri:  "http://localhost:" + localServer.Port + "/auth",
 		CodeVerifier: "gd8PkFgqwnYZOJJrxuMDk0Rjk2q3hx6VYYpIas4KvsECpPBpMXttrxc8bsT9kPtM8w41IdkvvBJOfX4RqwJLSM1hgrgBv5t6",
 	}
 }
 
-func (token TokenizeInfo) ToUrlValues(values *url.Values) {
+func (token TokenizeInfo) ToUrlValues(values *url.Values, localServer LocalServer) {
 	values.Add("code", token.Code)
 	values.Add("grant_type", "authorization_code")
 	values.Add("client_id", "frontend-cli")
-	values.Add("redirect_uri", "http://localhost:8080/auth")
+	values.Add("redirect_uri", "http://localhost:"+localServer.Port+"/auth")
 	values.Add("code_verifier", "gd8PkFgqwnYZOJJrxuMDk0Rjk2q3hx6VYYpIas4KvsECpPBpMXttrxc8bsT9kPtM8w41IdkvvBJOfX4RqwJLSM1hgrgBv5t6")
 	return
 }
