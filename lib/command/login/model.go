@@ -76,11 +76,11 @@ func NewAuthInfo(host string) AuthInfo {
 	}
 }
 
-func (info *AuthInfo) ToURI(authServer AuthServer, localServer LocalServer) string {
+func (info *AuthInfo) ToURI(authServer AuthServer, localPort string) string {
 	return authServer.Host +
 		info.Path +
 		"?client_id=" + authServer.ClientId +
-		"&redirect_uri=http%3A%2F%2Flocalhost%3A" + string(localServer.Port) + "%2Fauth" +
+		"&redirect_uri=http%3A%2F%2Flocalhost%3A" + string(localPort) + "%2Fauth" +
 		"&state=" + info.State +
 		"&response_mode=" + info.ResponseMode +
 		"&response_type=" + info.ResponseType +
@@ -90,21 +90,21 @@ func (info *AuthInfo) ToURI(authServer AuthServer, localServer LocalServer) stri
 		"&code_challenge_method=" + info.CodeChallengeMethod
 }
 
-func NewTokenizeInfo(code string, localServer LocalServer) TokenizeInfo {
+func NewTokenizeInfo(code string, localPort string) TokenizeInfo {
 	return TokenizeInfo{
 		Code:         code,
 		GrantType:    "authorization_code",
 		ClientId:     "frontend-cli",
-		RedirectUri:  "http://localhost:" + localServer.Port + "/auth",
+		RedirectUri:  "http://localhost:" + localPort + "/auth",
 		CodeVerifier: "gd8PkFgqwnYZOJJrxuMDk0Rjk2q3hx6VYYpIas4KvsECpPBpMXttrxc8bsT9kPtM8w41IdkvvBJOfX4RqwJLSM1hgrgBv5t6",
 	}
 }
 
-func (token TokenizeInfo) ToUrlValues(values *url.Values, localServer LocalServer) {
+func (token TokenizeInfo) ToUrlValues(values *url.Values, localPort string) {
 	values.Add("code", token.Code)
 	values.Add("grant_type", "authorization_code")
 	values.Add("client_id", "frontend-cli")
-	values.Add("redirect_uri", "http://localhost:"+localServer.Port+"/auth")
+	values.Add("redirect_uri", "http://localhost:"+localPort+"/auth")
 	values.Add("code_verifier", "gd8PkFgqwnYZOJJrxuMDk0Rjk2q3hx6VYYpIas4KvsECpPBpMXttrxc8bsT9kPtM8w41IdkvvBJOfX4RqwJLSM1hgrgBv5t6")
 	return
 }

@@ -1,5 +1,7 @@
 package login
 
+// "https://t1.authority.dev.aruba-simpl.cloud/auth"
+
 import (
 	"encoding/json"
 	"errors"
@@ -15,14 +17,12 @@ import (
 
 func Exec(conf app.Data, args []string) {
 	config := ReadConfigFlag(args)
-	// "https://t1.authority.dev.aruba-simpl.cloud/auth"
-	authInfo := NewAuthInfo(config.AuthServer.Host)
-	userTokenC := StartLoginWebServer(config.AuthServer, config.Server, authInfo)
+	userTokenC := StartLoginWebServer(config.AuthServer, config.Server.Port)
 	userToken, ok := <-userTokenC
 	if !ok {
 		log.Fatal("Unable to read from token. Channel is closed.")
 	}
-	token, err := Tokenize(config.AuthServer, config.Server, userToken)
+	token, err := Tokenize(config.AuthServer, config.Server.Port, userToken)
 	if err != nil {
 		log.Fatalf("Unable to tokenize. %s", err.Error())
 	}
@@ -46,11 +46,12 @@ func ReadConfigFlag(args []string) (config ConfigFlags) {
 	return
 }
 
-func StartLoginWebServer(authServer AuthServer, localServer LocalServer, authInfo AuthInfo) chan UserToken {
+func StartLoginWebServer(authServer AuthServer, localPort string) chan UserToken {
+	authInfo := NewAuthInfo(authServer.Host)
 	userTokenC := make(chan UserToken)
 	go func() {
 		log.Println("Start login server")
-		log.Println("Server: localhost:" + localServer.Port)
+		log.Println("Server: localhost:" + localPort)
 		http.HandleFunc("GET /auth", func(w http.ResponseWriter, r *http.Request) {
 			log.Println("Authentication...")
 			w.WriteHeader(200)
@@ -68,18 +69,18 @@ func StartLoginWebServer(authServer AuthServer, localServer LocalServer, authInf
 		})
 		http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 			log.Println("Login request.")
-			http.Redirect(w, r, authInfo.ToURI(authServer, localServer), 301)
+			http.Redirect(w, r, authInfo.ToURI(authServer, localPort), 301)
 		})
-		error := http.ListenAndServe("localhost:"+localServer.Port, nil)
+		error := http.ListenAndServe("localhost:"+localPort, nil)
 		log.Printf("Unable to start login server. %s", error.Error())
 		close(userTokenC)
 	}()
 	return userTokenC
 }
 
-func Tokenize(authServer AuthServer, localServer LocalServer, token UserToken) (tokenInfo TokenInfo, err error) {
+func Tokenize(authServer AuthServer, localPort string, token UserToken) (tokenInfo TokenInfo, err error) {
 	values := url.Values{}
-	NewTokenizeInfo(token.Code, localServer).ToUrlValues(&values, localServer)
+	NewTokenizeInfo(token.Code, localPort).ToUrlValues(&values, localPort)
 	log.Println("Tokenize...")
 	r, err := http.PostForm(authServer.Host+"/realms/"+authServer.Realm+"/protocol/openid-connect/token", values)
 	if err != nil {
