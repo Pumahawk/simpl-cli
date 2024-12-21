@@ -1,6 +1,14 @@
 package login
 
-import "net/url"
+import (
+	"net/url"
+
+	app "github.com/pumahawk/simplcli/lib/application"
+)
+
+type LoginDataCommand struct {
+	AppData app.Data
+}
 
 type ConfigFlags struct {
 	Server     LocalServer

@@ -1,32 +1,30 @@
 package main
 
 import (
-	"github.com/pumahawk/simplcli/lib/command/login"
+	"flag"
+	app "github.com/pumahawk/simplcli/lib/application"
 	"log"
 	"os"
 )
 
-var defaultTokenFilePath = os.TempDir() + "/tokenfile"
-var tokenFile string
-
 func main() {
-	if len(os.Args) < 2 {
+	data, args := readArgs()
+	if len(args) < 1 {
 		log.Fatal("Missing subcommand")
 	}
-	subcommand := os.Args[1]
-	switch subcommand {
-	case "login":
-		login.Exec(os.Args[2:])
-	default:
-		log.Fatalf("Subcommand mandatory. Parameter: %s", subcommand)
+	subcommand := args[0]
+	for _, command := range DefinedCommands {
+		if command.Name == subcommand {
+			command.Exec(data, args[1:])
+			os.Exit(0)
+		}
 	}
+	log.Fatalf("Subcommand mandatory. Parameter: %s", subcommand)
 }
 
-func LoopUpEnvDefault(envName string, defValue string) string {
-	val, exist := os.LookupEnv("SIMPLCLI_TOKENFILE")
-	if exist {
-		return val
-	} else {
-		return defValue
-	}
+func readArgs() (app.Data, []string) {
+	appData := app.Data{}
+	flag.StringVar(&appData.DirData, "dir-data", os.TempDir(), "Configuration directory")
+	flag.Parse()
+	return appData, flag.Args()
 }

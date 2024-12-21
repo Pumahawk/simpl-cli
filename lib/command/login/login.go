@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	app "github.com/pumahawk/simplcli/lib/application"
 )
 
-func Exec(args []string) {
+func Exec(conf app.Data, args []string) {
 	config := ReadConfigFlag(args)
 	// "https://t1.authority.dev.aruba-simpl.cloud/auth"
 	authInfo := NewAuthInfo(config.AuthServer.Host)
