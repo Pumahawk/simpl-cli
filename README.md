@@ -1,5 +1,18 @@
 # Simpl - CLI
 
+# Table of contents
+- [Simpl - CLI](#simpl---cli)
+- [Notes](#notes)
+  - [Autenticazione](#autenticazione)
+
+```bash
+simplcli --help
+simplcli login --help
+simplcli token --help
+```
+
+# Notes
+
 CLI per l'utilizzo dei servizi di SIMPL da linea di comando.
 Una parte necessaria all'utilizzo dei servizi di SIMPL e dover recuperare un token che rappresenta l'utente.
 
