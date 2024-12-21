@@ -34,6 +34,7 @@ func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
 	userTokenC := make(chan UserToken)
 	go func() {
 		log.Println("Start login server")
+		log.Println("Server: localhost:8080")
 		http.HandleFunc("GET /auth", func(w http.ResponseWriter, r *http.Request) {
 			log.Println("Authentication...")
 			w.WriteHeader(200)
@@ -43,10 +44,10 @@ func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
 			w.WriteHeader(200)
 			w.Write(CODE_PAGE_HTML)
 			userTokenC <- UserToken{
-				Code: r.URL.Query().Get("code"),
-				Iss: r.URL.Query().Get("iss"),
+				Code:         r.URL.Query().Get("code"),
+				Iss:          r.URL.Query().Get("iss"),
 				SessionState: r.URL.Query().Get("session_state"),
-				State: r.URL.Query().Get("state"),
+				State:        r.URL.Query().Get("state"),
 			}
 		})
 		http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
@@ -60,13 +61,9 @@ func StartLoginWebServer(authInfo AuthInfo) chan UserToken {
 	return userTokenC
 }
 
-func Tokenize(userToken UserToken) (tokenInfo TokenInfo, err error) {
+func Tokenize(token UserToken) (tokenInfo TokenInfo, err error) {
 	values := url.Values{}
-	values.Add("code", userToken.Code)
-	values.Add("grant_type", "authorization_code")
-	values.Add("client_id", "frontend-cli")
-	values.Add("redirect_uri", "http://localhost:8080/auth")
-	values.Add("code_verifier", "gd8PkFgqwnYZOJJrxuMDk0Rjk2q3hx6VYYpIas4KvsECpPBpMXttrxc8bsT9kPtM8w41IdkvvBJOfX4RqwJLSM1hgrgBv5t6")
+	NewTokenizeInfo(token.Code).ToUrlValues(&values)
 	log.Println("Tokenize...")
 	r, err := http.PostForm("https://t1.authority.dev.aruba-simpl.cloud/auth/realms/authority/protocol/openid-connect/token", values)
 	if err != nil {
@@ -75,11 +72,11 @@ func Tokenize(userToken UserToken) (tokenInfo TokenInfo, err error) {
 	defer r.Body.Close()
 	log.Println("Tokenize status: ", r.Status)
 	log.Println("Tokenize size: ", r.Header.Get("content-length"))
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			return tokenInfo, err
-		}
-	if r.StatusCode >=200 && r.StatusCode < 300 {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return tokenInfo, err
+	}
+	if r.StatusCode >= 200 && r.StatusCode < 300 {
 		err = json.Unmarshal(body, &tokenInfo)
 	} else {
 		log.Printf("Body: %s", body)
