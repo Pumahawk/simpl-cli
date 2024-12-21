@@ -4,12 +4,9 @@ package login
 
 import (
 	"encoding/json"
-	"errors"
 	"flag"
-	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 
 	app "github.com/pumahawk/simplcli/lib/application"
@@ -22,11 +19,7 @@ func Exec(conf app.Data, args []string) {
 	if !ok {
 		log.Fatal("Unable to read from token. Channel is closed.")
 	}
-	token, err := Tokenize(config.AuthServer, config.Server.Port, userToken)
-	if err != nil {
-		log.Fatalf("Unable to tokenize. %s", err.Error())
-	}
-	err = json.NewEncoder(os.Stdout).Encode(token)
+	err := json.NewEncoder(os.Stdout).Encode(userToken)
 	if err != nil {
 		log.Fatalf("Unable to encode token to stdout. %s", err)
 	}
@@ -38,6 +31,7 @@ func ReadConfigFlag(args []string) (config ConfigFlags) {
 	flags.StringVar(&config.AuthServer.Host, "auth-host", "", "Authentication server host")
 	flags.StringVar(&config.AuthServer.ClientId, "auth-client-id", "frontend-cli", "Client Id")
 	flags.StringVar(&config.AuthServer.Realm, "realm", "authority", "Keycloak realm")
+	flags.StringVar(&config.AuthServer.Realm, "user", "default", "User session")
 	flags.Parse(args)
 
 	if config.AuthServer.Host == "" {
@@ -76,28 +70,4 @@ func StartLoginWebServer(authServer AuthServer, localPort string) chan UserToken
 		close(userTokenC)
 	}()
 	return userTokenC
-}
-
-func Tokenize(authServer AuthServer, localPort string, token UserToken) (tokenInfo TokenInfo, err error) {
-	values := url.Values{}
-	NewTokenizeInfo(token.Code, localPort).ToUrlValues(&values, localPort)
-	log.Println("Tokenize...")
-	r, err := http.PostForm(authServer.Host+"/realms/"+authServer.Realm+"/protocol/openid-connect/token", values)
-	if err != nil {
-		return
-	}
-	defer r.Body.Close()
-	log.Println("Tokenize status: ", r.Status)
-	log.Println("Tokenize size: ", r.Header.Get("content-length"))
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return tokenInfo, err
-	}
-	if r.StatusCode >= 200 && r.StatusCode < 300 {
-		err = json.Unmarshal(body, &tokenInfo)
-	} else {
-		log.Printf("Body: %s", body)
-		err = errors.New("Bad tokenization. " + r.Status)
-	}
-	return
 }
