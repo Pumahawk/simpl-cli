@@ -4,7 +4,9 @@ package login
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +21,7 @@ func Exec(conf app.Data, args []string) {
 	if !ok {
 		log.Fatal("Unable to read from token. Channel is closed.")
 	}
-	err := json.NewEncoder(os.Stdout).Encode(userToken)
+	err := saveUserAuthData(conf, config.User, userToken)
 	if err != nil {
 		log.Fatalf("Unable to encode token to stdout. %s", err)
 	}
@@ -31,7 +33,7 @@ func ReadConfigFlag(args []string) (config ConfigFlags) {
 	flags.StringVar(&config.AuthServer.Host, "auth-host", "", "Authentication server host")
 	flags.StringVar(&config.AuthServer.ClientId, "auth-client-id", "frontend-cli", "Client Id")
 	flags.StringVar(&config.AuthServer.Realm, "realm", "authority", "Keycloak realm")
-	flags.StringVar(&config.AuthServer.Realm, "user", "default", "User session")
+	flags.StringVar(&config.User, "user", "default", "User session")
 	flags.Parse(args)
 
 	if config.AuthServer.Host == "" {
@@ -70,4 +72,14 @@ func StartLoginWebServer(authServer AuthServer, localPort string) chan UserToken
 		close(userTokenC)
 	}()
 	return userTokenC
+}
+
+func saveUserAuthData(appData app.Data, user string, userToken UserToken) error {
+	fileName := appData.DirData + "/" + user + ".json"
+	file, err := os.Create(fileName)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Unable to open user file %s", fileName))
+	}
+	err = json.NewEncoder(file).Encode(userToken)
+	return err
 }

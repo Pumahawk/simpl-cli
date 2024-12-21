@@ -9,6 +9,7 @@ type LoginDataCommand struct {
 }
 
 type ConfigFlags struct {
+	User       string
 	Server     LocalServer
 	AuthServer AuthServer
 }

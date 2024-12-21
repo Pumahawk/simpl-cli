@@ -2,6 +2,18 @@ package token
 
 import "net/url"
 
+type ConfigFlags struct {
+	User       string
+	Port       string
+	AuthServer AuthServer
+}
+
+type AuthServer struct {
+	Host     string
+	ClientId string
+	Realm    string
+}
+
 type TokenInfo struct {
 	AccessToken      string `json:"access_token"`
 	ExpiresIn        int    `json:"expires_in"`
