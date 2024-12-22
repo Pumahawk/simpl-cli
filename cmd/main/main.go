@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
-	app "github.com/pumahawk/simplcli/lib/application"
 	"log"
 	"os"
+
+	app "github.com/pumahawk/simplcli/lib/application"
+	"github.com/pumahawk/simplcli/lib/svc/profile"
 )
 
 func main() {
@@ -25,8 +27,29 @@ func main() {
 func readArgs() (app.Data, []string) {
 	appData := app.Data{}
 	flag.StringVar(&appData.DirData, "dir-data", os.TempDir(), "Configuration directory")
+	flag.StringVar(&appData.DirData, "user", os.TempDir(), "Configuration directory")
+	p := *flag.String("profile", "", "Profile name")
 	flag.StringVar(&appData.KCHost, "keycloak-host", "", "Keycloak host")
 	flag.StringVar(&appData.KCRealm, "keycloak-realm", "authority", "Keycloak realm")
 	flag.Parse()
+	if p != "" {
+		profile, err := profile.LoadProfile(profile.GetProfileFile(appData.DirData, p))
+		if err != nil {
+			log.Fatalf("Unable to load profile %s. %s", p, err.Error())
+		}
+		mapProfileToAppData(&appData, profile)
+	}
 	return appData, flag.Args()
+}
+
+func mapProfileToAppData(appData *app.Data, profile profile.Info) {
+	if appData.User == "" {
+		appData.User = profile.User
+	}
+	if appData.KCHost == "" {
+		appData.KCHost = profile.KeyCloakHost
+	}
+	if appData.KCRealm == "" {
+		appData.KCRealm = profile.KeyCloakRealm
+	}
 }
