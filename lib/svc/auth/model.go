@@ -97,5 +97,9 @@ func (info *AuthInfo) ToURI(authServer AuthServer, localPort string) string {
 }
 
 func (tokenInfo *TokenInfo) UpdateExpirationTime(t time.Time) {
-	tokenInfo.TimeExiration = t.Add(time.Second * time.Duration(tokenInfo.ExpiresIn)).UnixMilli()
+	tokenInfo.TimeExiration = t.Add(time.Second * time.Duration(tokenInfo.ExpiresIn)).Unix()
+}
+
+func (tokenInfo *TokenInfo) IsExpired() bool {
+	return time.Now().Unix() > tokenInfo.TimeExiration
 }

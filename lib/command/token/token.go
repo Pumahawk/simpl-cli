@@ -18,7 +18,7 @@ func Exec(conf app.Data, args []string) {
 	if err != nil {
 		log.Fatalf("Unable to load user auth data. %s", err.Error())
 	}
-	if time.Now().UnixMilli() > tokenInfo.TimeExiration {
+	if tokenInfo.IsExpired() {
 		tokenInfo, err = auth.ReloadToken(flags.AuthServer, tokenInfo)
 		if err != nil {
 			log.Fatalf("Unable to reload token. %s", err.Error())
