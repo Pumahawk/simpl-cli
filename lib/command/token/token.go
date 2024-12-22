@@ -8,22 +8,22 @@ import (
 	"time"
 
 	app "github.com/pumahawk/simplcli/lib/application"
-	"github.com/pumahawk/simplcli/lib/svc"
+	"github.com/pumahawk/simplcli/lib/svc/auth"
 )
 
 func Exec(conf app.Data, args []string) {
 	flags := ReadConfigFlag(args)
-	tokenInfo, err := svc.LoadUserAuthData(conf, flags.User)
+	tokenInfo, err := auth.LoadUserAuthData(conf, flags.User)
 	if err != nil {
 		log.Fatalf("Unable to load user auth data. %s", err.Error())
 	}
 	if time.Now().UnixMilli() > tokenInfo.TimeExiration {
-		tokenInfo, err = svc.ReloadToken(flags.AuthServer, tokenInfo)
+		tokenInfo, err = auth.ReloadToken(flags.AuthServer, tokenInfo)
 		if err != nil {
 			log.Fatalf("Unable to reload token. %s", err.Error())
 		}
 		tokenInfo.UpdateExpirationTime(time.Now())
-		svc.SaveUserAuthData(conf, flags.User, tokenInfo)
+		auth.SaveUserAuthData(conf, flags.User, tokenInfo)
 	}
 
 	err = json.NewEncoder(os.Stdout).Encode(tokenInfo)

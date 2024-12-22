@@ -1,4 +1,4 @@
-package svc
+package auth
 
 import (
 	"encoding/json"

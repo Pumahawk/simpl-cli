@@ -1,4 +1,4 @@
-package svc
+package auth
 
 import (
 	"net/url"

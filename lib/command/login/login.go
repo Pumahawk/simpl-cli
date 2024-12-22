@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	app "github.com/pumahawk/simplcli/lib/application"
-	"github.com/pumahawk/simplcli/lib/svc"
+	"github.com/pumahawk/simplcli/lib/svc/auth"
 )
 
 func Exec(conf app.Data, args []string) {
@@ -18,11 +18,11 @@ func Exec(conf app.Data, args []string) {
 	if !ok {
 		log.Fatal("Unable to read from token. Channel is closed.")
 	}
-	tokenInfo, err := svc.Tokenize(config.AuthServer, config.Server.Port, userToken)
+	tokenInfo, err := auth.Tokenize(config.AuthServer, config.Server.Port, userToken)
 	if err != nil {
 		log.Fatalf("Unable to tokenize. %s", err.Error())
 	}
-	err = svc.SaveUserAuthData(conf, config.User, tokenInfo)
+	err = auth.SaveUserAuthData(conf, config.User, tokenInfo)
 	if err != nil {
 		log.Fatalf("Unable to encode token to stdout. %s", err.Error())
 	}
@@ -43,9 +43,9 @@ func ReadConfigFlag(args []string) (config ConfigFlags) {
 	return
 }
 
-func StartLoginWebServer(authServer svc.AuthServer, localPort string) chan svc.UserToken {
-	authInfo := svc.NewAuthInfo(authServer.Host, authServer.Realm)
-	userTokenC := make(chan svc.UserToken)
+func StartLoginWebServer(authServer auth.AuthServer, localPort string) chan auth.UserToken {
+	authInfo := auth.NewAuthInfo(authServer.Host, authServer.Realm)
+	userTokenC := make(chan auth.UserToken)
 	go func() {
 		log.Println("Start login server")
 		log.Println("Server: localhost:" + localPort)
@@ -57,7 +57,7 @@ func StartLoginWebServer(authServer svc.AuthServer, localPort string) chan svc.U
 		http.HandleFunc("GET /code", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 			w.Write(CODE_PAGE_HTML)
-			userTokenC <- svc.UserToken{
+			userTokenC <- auth.UserToken{
 				Code:         r.URL.Query().Get("code"),
 				Iss:          r.URL.Query().Get("iss"),
 				SessionState: r.URL.Query().Get("session_state"),
