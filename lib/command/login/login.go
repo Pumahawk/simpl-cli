@@ -7,8 +7,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	app "github.com/pumahawk/simplcli/lib/application"
@@ -21,9 +23,13 @@ func Exec(conf app.Data, args []string) {
 	if !ok {
 		log.Fatal("Unable to read from token. Channel is closed.")
 	}
-	err := saveUserAuthData(conf, config.User, userToken)
+	tokenInfo, err := Tokenize(config.AuthServer, config.Server.Port, userToken)
 	if err != nil {
-		log.Fatalf("Unable to encode token to stdout. %s", err)
+		log.Fatalf("Unable to tokenize. %s", err.Error())
+	}
+	err = saveUserAuthData(conf, config.User, tokenInfo)
+	if err != nil {
+		log.Fatalf("Unable to encode token to stdout. %s", err.Error())
 	}
 }
 
@@ -74,12 +80,36 @@ func StartLoginWebServer(authServer AuthServer, localPort string) chan UserToken
 	return userTokenC
 }
 
-func saveUserAuthData(appData app.Data, user string, userToken UserToken) error {
+func saveUserAuthData(appData app.Data, user string, tokenInfo TokenInfo) error {
 	fileName := appData.DirData + "/" + user + ".json"
 	file, err := os.Create(fileName)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Unable to open user file %s", fileName))
 	}
-	err = json.NewEncoder(file).Encode(userToken)
+	err = json.NewEncoder(file).Encode(tokenInfo)
 	return err
+}
+
+func Tokenize(authServer AuthServer, localPort string, token UserToken) (tokenInfo TokenInfo, err error) {
+	values := url.Values{}
+	NewTokenizeInfo(token.Code, localPort).ToUrlValues(&values, localPort)
+	log.Println("Tokenize...")
+	r, err := http.PostForm(authServer.Host+"/realms/"+authServer.Realm+"/protocol/openid-connect/token", values)
+	if err != nil {
+		return
+	}
+	defer r.Body.Close()
+	log.Println("Tokenize status: ", r.Status)
+	log.Println("Tokenize size: ", r.Header.Get("content-length"))
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return tokenInfo, err
+	}
+	if r.StatusCode >= 200 && r.StatusCode < 300 {
+		err = json.Unmarshal(body, &tokenInfo)
+	} else {
+		log.Printf("Body: %s", body)
+		err = errors.New("Bad tokenization. " + r.Status)
+	}
+	return
 }
