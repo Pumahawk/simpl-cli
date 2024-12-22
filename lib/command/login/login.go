@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	app "github.com/pumahawk/simplcli/lib/application"
 )
@@ -111,5 +112,6 @@ func Tokenize(authServer AuthServer, localPort string, token UserToken) (tokenIn
 		log.Printf("Body: %s", body)
 		err = errors.New("Bad tokenization. " + r.Status)
 	}
+	tokenInfo.ExpiresIn = int(time.Now().Add(time.Second * time.Duration(tokenInfo.ExpiresIn)).UnixMilli())
 	return
 }

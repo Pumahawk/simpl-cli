@@ -82,6 +82,7 @@ func NewTokenizeInfo(code string, localPort string) TokenizeInfo {
 }
 
 type TokenInfo struct {
+	TimeExiration    string
 	AccessToken      string `json:"access_token"`
 	ExpiresIn        int    `json:"expires_in"`
 	RefreshExpiresIn int    `json:"refresh_expires_in"`
