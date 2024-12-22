@@ -28,14 +28,15 @@ func readArgs() (app.Data, []string) {
 	appData := app.Data{}
 	flag.StringVar(&appData.DirData, "dir-data", os.TempDir(), "Configuration directory")
 	flag.StringVar(&appData.DirData, "user", os.TempDir(), "Configuration directory")
-	p := *flag.String("profile", "", "Profile name")
+	p := flag.String("profile", "", "Profile name")
 	flag.StringVar(&appData.KCHost, "keycloak-host", "", "Keycloak host")
 	flag.StringVar(&appData.KCRealm, "keycloak-realm", "authority", "Keycloak realm")
 	flag.Parse()
-	if p != "" {
-		profile, err := profile.LoadProfile(profile.GetProfileFile(appData.DirData, p))
+
+	if *p != "" {
+		profile, err := profile.LoadProfile(profile.GetProfileFile(appData.DirData, *p))
 		if err != nil {
-			log.Fatalf("Unable to load profile %s. %s", p, err.Error())
+			log.Fatalf("Unable to load profile %s. %s", *p, err.Error())
 		}
 		mapProfileToAppData(&appData, profile)
 	}
