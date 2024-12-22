@@ -27,8 +27,5 @@ func readArgs() (app.Data, []string) {
 	flag.StringVar(&appData.DirData, "dir-data", os.TempDir(), "Configuration directory")
 	flag.StringVar(&appData.KCHost, "keycloak-host", "", "Keycloak host")
 	flag.Parse()
-	if appData.KCHost == "" {
-		log.Fatalln("Mandatory Keycloak host flag missing")
-	}
 	return appData, flag.Args()
 }
