@@ -1,7 +1,5 @@
 package login
 
-// "https://t1.authority.dev.aruba-simpl.cloud/auth"
-
 import (
 	"flag"
 	"log"
