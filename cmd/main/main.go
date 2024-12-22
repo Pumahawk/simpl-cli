@@ -30,7 +30,7 @@ func readArgs() (app.Data, []string) {
 	flag.StringVar(&appData.DirData, "user", os.TempDir(), "Configuration directory")
 	p := flag.String("profile", "", "Profile name")
 	flag.StringVar(&appData.KCHost, "keycloak-host", "", "Keycloak host")
-	flag.StringVar(&appData.KCRealm, "keycloak-realm", "authority", "Keycloak realm")
+	flag.StringVar(&appData.KCRealm, "keycloak-realm", "", "Keycloak realm")
 	flag.Parse()
 
 	if *p != "" {
