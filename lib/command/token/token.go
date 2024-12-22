@@ -3,6 +3,7 @@ package token
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -26,9 +27,13 @@ func Exec(conf app.Data, args []string) {
 		auth.SaveUserAuthData(conf, flags.User, tokenInfo)
 	}
 
-	err = json.NewEncoder(os.Stdout).Encode(tokenInfo)
-	if err != nil {
-		log.Fatalf("Unable to print token")
+	if flags.Verbose {
+		err = json.NewEncoder(os.Stdout).Encode(tokenInfo)
+		if err != nil {
+			log.Fatalf("Unable to print token")
+		}
+	} else {
+		fmt.Println(tokenInfo.AccessToken)
 	}
 }
 
@@ -37,6 +42,7 @@ func ReadConfigFlag(appData app.Data, args []string) (config ConfigFlags) {
 	flags.StringVar(&config.AuthServer.Host, "host", appData.KCHost, "Authentication server host")
 	flags.StringVar(&config.AuthServer.Realm, "realm", "authority", "Realm")
 	flags.StringVar(&config.AuthServer.ClientId, "client-id", "frontend-cli", "Client Id")
+	flags.BoolVar(&config.Verbose, "v", false, "Verbose mode")
 	flags.StringVar(&config.Port, "port", "8080", "Redirect local server port")
 	flags.StringVar(&config.User, "user", "default", "User session")
 	flags.Parse(args)
