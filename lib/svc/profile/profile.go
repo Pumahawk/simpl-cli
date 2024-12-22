@@ -7,7 +7,7 @@ import (
 )
 
 func GetProfileFile(confDir string, name string) string {
-	return confDir + "/" + name + ".json"
+	return confDir + "/" + name + "-profile.json"
 }
 
 func LoadProfile(file string) (info Info, err error) {
