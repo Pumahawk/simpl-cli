@@ -12,7 +12,7 @@ import (
 )
 
 func Exec(conf app.Data, args []string) {
-	flags := ReadConfigFlag(args)
+	flags := ReadConfigFlag(conf, args)
 	tokenInfo, err := auth.LoadUserAuthData(conf, flags.User)
 	if err != nil {
 		log.Fatalf("Unable to load user auth data. %s", err.Error())
@@ -32,9 +32,9 @@ func Exec(conf app.Data, args []string) {
 	}
 }
 
-func ReadConfigFlag(args []string) (config ConfigFlags) {
+func ReadConfigFlag(appData app.Data, args []string) (config ConfigFlags) {
 	flags := flag.NewFlagSet("token", flag.ExitOnError)
-	flags.StringVar(&config.AuthServer.Host, "host", "", "Authentication server host")
+	flags.StringVar(&config.AuthServer.Host, "host", appData.KCHost, "Authentication server host")
 	flags.StringVar(&config.AuthServer.Realm, "realm", "authority", "Realm")
 	flags.StringVar(&config.AuthServer.ClientId, "client-id", "frontend-cli", "Client Id")
 	flags.StringVar(&config.Port, "port", "8080", "Redirect local server port")

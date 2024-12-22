@@ -12,7 +12,7 @@ import (
 )
 
 func Exec(conf app.Data, args []string) {
-	config := ReadConfigFlag(args)
+	config := ReadConfigFlag(conf, args)
 	userTokenC := StartLoginWebServer(config.AuthServer, config.Server.Port)
 	userToken, ok := <-userTokenC
 	if !ok {
@@ -28,10 +28,10 @@ func Exec(conf app.Data, args []string) {
 	}
 }
 
-func ReadConfigFlag(args []string) (config ConfigFlags) {
+func ReadConfigFlag(appData app.Data, args []string) (config ConfigFlags) {
 	flags := flag.NewFlagSet("login", flag.ExitOnError)
 	flags.StringVar(&config.Server.Port, "port", "8080", "Server port")
-	flags.StringVar(&config.AuthServer.Host, "host", "", "Authentication server host")
+	flags.StringVar(&config.AuthServer.Host, "host", appData.KCHost, "Keycloak host")
 	flags.StringVar(&config.AuthServer.ClientId, "client-id", "frontend-cli", "Client Id")
 	flags.StringVar(&config.AuthServer.Realm, "realm", "authority", "Keycloak realm")
 	flags.StringVar(&config.User, "user", "default", "User session")
