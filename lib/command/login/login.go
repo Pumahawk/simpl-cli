@@ -44,7 +44,7 @@ func ReadConfigFlag(args []string) (config ConfigFlags) {
 }
 
 func StartLoginWebServer(authServer svc.AuthServer, localPort string) chan svc.UserToken {
-	authInfo := svc.NewAuthInfo(authServer.Host)
+	authInfo := svc.NewAuthInfo(authServer.Host, authServer.Realm)
 	userTokenC := make(chan svc.UserToken)
 	go func() {
 		log.Println("Start login server")
@@ -66,7 +66,7 @@ func StartLoginWebServer(authServer svc.AuthServer, localPort string) chan svc.U
 		})
 		http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 			log.Println("Login request.")
-			http.Redirect(w, r, authInfo.ToURI(authServer, localPort), 301)
+			http.Redirect(w, r, authInfo.ToURI(authServer, localPort), 302)
 		})
 		error := http.ListenAndServe("localhost:"+localPort, nil)
 		log.Printf("Unable to start login server. %s", error.Error())

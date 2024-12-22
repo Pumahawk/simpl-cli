@@ -50,9 +50,9 @@ type TokenInfo struct {
 	Scope            string `json:"scope"`
 }
 
-func NewAuthInfo(host string) AuthInfo {
+func NewAuthInfo(host string, realm string) AuthInfo {
 	return AuthInfo{
-		Path:                "/realms/authority/protocol/openid-connect/auth",
+		Path:                "/realms/" + realm + "/protocol/openid-connect/auth",
 		State:               "29f2c56a-d4df-49cf-87dc-a870669a61ab",
 		ResponseMode:        "fragment",
 		ResponseType:        "code",
