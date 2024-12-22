@@ -40,7 +40,7 @@ func Exec(conf app.Data, args []string) {
 func ReadConfigFlag(appData app.Data, args []string) (config ConfigFlags) {
 	flags := flag.NewFlagSet("token", flag.ExitOnError)
 	flags.StringVar(&config.AuthServer.Host, "host", appData.KCHost, "Authentication server host")
-	flags.StringVar(&config.AuthServer.Realm, "realm", "authority", "Realm")
+	flags.StringVar(&config.AuthServer.Realm, "realm", appData.KCRealm, " Keycloak Realm")
 	flags.StringVar(&config.AuthServer.ClientId, "client-id", "frontend-cli", "Client Id")
 	flags.BoolVar(&config.Verbose, "v", false, "Verbose mode")
 	flags.StringVar(&config.Port, "port", "8080", "Redirect local server port")

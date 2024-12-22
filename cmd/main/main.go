@@ -26,6 +26,7 @@ func readArgs() (app.Data, []string) {
 	appData := app.Data{}
 	flag.StringVar(&appData.DirData, "dir-data", os.TempDir(), "Configuration directory")
 	flag.StringVar(&appData.KCHost, "keycloak-host", "", "Keycloak host")
+	flag.StringVar(&appData.KCRealm, "keycloak-realm", "authority", "Keycloak realm")
 	flag.Parse()
 	return appData, flag.Args()
 }
