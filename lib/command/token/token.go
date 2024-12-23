@@ -43,7 +43,7 @@ func ReadConfigFlag(appData app.Data, args []string) (config ConfigFlags) {
 	flags.StringVar(&config.AuthServer.Realm, "realm", appData.KCRealm, " Keycloak Realm")
 	flags.StringVar(&config.AuthServer.ClientId, "client-id", "frontend-cli", "Client Id")
 	flags.BoolVar(&config.Verbose, "v", false, "Verbose mode")
-	flags.StringVar(&config.User, "user", "default", "User session")
+	flags.StringVar(&config.User, "user", appData.User, "User session")
 	flags.Parse(args)
 
 	if config.AuthServer.Host == "" {

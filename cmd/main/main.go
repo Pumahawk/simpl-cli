@@ -27,7 +27,7 @@ func main() {
 func readArgs() (app.Data, []string) {
 	appData := app.Data{}
 	flag.StringVar(&appData.DirData, "dir-data", os.TempDir(), "Configuration directory")
-	flag.StringVar(&appData.DirData, "user", os.TempDir(), "Configuration directory")
+	flag.StringVar(&appData.User, "user", "default", "User name")
 	p := flag.String("profile", "", "Profile name")
 	flag.StringVar(&appData.KCHost, "keycloak-host", "", "Keycloak host")
 	flag.StringVar(&appData.KCRealm, "keycloak-realm", "", "Keycloak realm")
@@ -44,7 +44,7 @@ func readArgs() (app.Data, []string) {
 }
 
 func mapProfileToAppData(appData *app.Data, profile profile.Info) {
-	if appData.User == "" {
+	if appData.User == "default" {
 		appData.User = profile.User
 	}
 	if appData.KCHost == "" {
