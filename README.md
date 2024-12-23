@@ -9,6 +9,7 @@
 simplcli --help
 simplcli login --help
 simplcli token --help
+simplcli profile --help
 ```
 
 # Notes
