@@ -1,7 +1,7 @@
 package login
 
 import (
-	"github.com/pumahawk/simplcli/lib/svc/auth"
+	"github.com/pumahawk/simpl-cli/lib/svc/auth"
 )
 
 type ConfigFlags struct {

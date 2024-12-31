@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	app "github.com/pumahawk/simplcli/lib/application"
+	app "github.com/pumahawk/simpl-cli/lib/application"
 )
 
 func Tokenize(authServer AuthServer, localPort string, token UserToken) (tokenInfo TokenInfo, err error) {

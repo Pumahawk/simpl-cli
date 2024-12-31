@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	app "github.com/pumahawk/simplcli/lib/application"
-	pr "github.com/pumahawk/simplcli/lib/svc/profile"
+	app "github.com/pumahawk/simpl-cli/lib/application"
+	pr "github.com/pumahawk/simpl-cli/lib/svc/profile"
 )
 
 func Exec(conf app.Data, args []string) {

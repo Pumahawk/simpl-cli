@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	app "github.com/pumahawk/simplcli/lib/application"
-	"github.com/pumahawk/simplcli/lib/svc/auth"
+	app "github.com/pumahawk/simpl-cli/lib/application"
+	"github.com/pumahawk/simpl-cli/lib/svc/auth"
 )
 
 func Exec(conf app.Data, args []string) {

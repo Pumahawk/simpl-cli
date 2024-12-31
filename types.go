@@ -1,6 +1,6 @@
 package main
 
-import "github.com/pumahawk/simplcli/lib/application"
+import "github.com/pumahawk/simpl-cli/lib/application"
 
 type CommandExec = func(application.Data, []string)
 

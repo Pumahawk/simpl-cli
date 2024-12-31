@@ -6,10 +6,10 @@
   - [Autenticazione](#autenticazione)
 
 ```bash
-simplcli --help
-simplcli login --help
-simplcli token --help
-simplcli profile --help
+simpl-cli --help
+simpl-cli login --help
+simpl-cli token --help
+simpl-cli profile --help
 ```
 
 # Notes
@@ -35,7 +35,7 @@ Possibilità di definire un utente e registrarsi all'authentication manager.
 Mi immagino una funzionalità del tipo:
 
 ```bash
-simplcli auth --user username --authserver https://authserver.com/xxxxx bash
+simpl-cli auth --user username --authserver https://authserver.com/xxxxx bash
 ```
 
 La cli permettere all'utente di effettaure l'autenticazione tramite Browser
